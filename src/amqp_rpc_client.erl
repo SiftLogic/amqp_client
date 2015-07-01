@@ -21,12 +21,12 @@
 %% accordingly.
 -module(amqp_rpc_client).
 
--include("amqp_client.hrl").
+-include("../include/amqp_client.hrl").
 
 -behaviour(gen_server).
 
 -export([start/2, start_link/2, stop/1]).
--export([call/2]).
+-export([call/2, call/3]).
 -export([init/1, terminate/2, code_change/3, handle_call/3,
          handle_cast/2, handle_info/2]).
 
@@ -79,6 +79,16 @@ stop(Pid) ->
 %% @doc Invokes an RPC. Note the caller of this function is responsible for
 %% encoding the request and decoding the response.
 call(RpcClient, Payload) ->
+    call(RpcClient, Payload, infinity).
+
+%% @spec (RpcClient, Payload) -> ok
+%% where
+%%      RpcClient = pid()
+%%      Payload = binary()
+%%      Timeout = infinity | pos_integer()
+%% @doc Invokes an RPC. Note the caller of this function is responsible for
+%% encoding the request and decoding the response.
+call(RpcClient, Payload, Timeout) ->
     gen_server:call(RpcClient, {call, Payload}, infinity).
 
 %%--------------------------------------------------------------------------
@@ -94,7 +104,7 @@ setup_reply_queue(State = #state{channel = Channel}) ->
 
 %% Registers this RPC client instance as a consumer to handle rpc responses
 setup_consumer(#state{channel = Channel, reply_queue = Q}) ->
-    amqp_channel:call(Channel, #'basic.consume'{queue = Q}).
+    amqp_channel:subscribe(Channel, #'basic.consume'{queue = Q}, self()).
 
 %% Publishes to the broker, stores the From address against
 %% the correlation id and increments the correlationid for
@@ -125,8 +135,8 @@ publish(Payload, From,
 %% Sets up a reply queue and consumer within an existing channel
 %% @private
 init([Connection, RoutingKey]) ->
-    {ok, Channel} = amqp_connection:open_channel(
-                        Connection, {amqp_direct_consumer, [self()]}),
+    {ok, Channel} = amqp_connection:open_channel(Connection),
+                        %%Connection, {amqp_direct_consumer, [self()]}),
     InitialState = #state{channel     = Channel,
                           exchange    = <<>>,
                           routing_key = RoutingKey},
