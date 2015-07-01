@@ -89,7 +89,7 @@ call(RpcClient, Payload) ->
 %% @doc Invokes an RPC. Note the caller of this function is responsible for
 %% encoding the request and decoding the response.
 call(RpcClient, Payload, Timeout) ->
-    gen_server:call(RpcClient, {call, Payload}, infinity).
+    gen_server:call(RpcClient, {call, Payload}, Timeout).
 
 %%--------------------------------------------------------------------------
 %% Plumbing
