@@ -21,7 +21,7 @@
 %% accordingly.
 -module(amqp_rpc_client).
 
--include("../include/amqp_client.hrl").
+-include("amqp_client.hrl").
 
 -behaviour(gen_server).
 
@@ -136,7 +136,6 @@ publish(Payload, From,
 %% @private
 init([Connection, RoutingKey]) ->
     {ok, Channel} = amqp_connection:open_channel(Connection),
-                        %%Connection, {amqp_direct_consumer, [self()]}),
     InitialState = #state{channel     = Channel,
                           exchange    = <<>>,
                           routing_key = RoutingKey},
