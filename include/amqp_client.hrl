@@ -36,7 +36,8 @@
                                   [fun amqp_auth_mechanisms:plain/3,
                                    fun amqp_auth_mechanisms:amqplain/3],
                               client_properties  = [],
-                              socket_options     = []}).
+                              socket_options     = [],
+                              confirms           = false}).
 
 -record(amqp_params_direct, {username          = none,
                              password          = none,
